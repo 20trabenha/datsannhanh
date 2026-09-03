@@ -7,6 +7,5 @@
 }
 
 export interface RegistrationRequest {
-  studentId: number;
   courseId: number;
 }

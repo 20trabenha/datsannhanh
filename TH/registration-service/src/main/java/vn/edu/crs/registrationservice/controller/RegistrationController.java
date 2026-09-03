@@ -2,13 +2,15 @@ package vn.edu.crs.registrationservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.crs.registrationservice.dto.RegistrationRequest;
 import vn.edu.crs.registrationservice.dto.RegistrationResponse;
 import vn.edu.crs.registrationservice.service.RegistrationService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/registrations")
@@ -18,44 +20,45 @@ public class RegistrationController {
     private RegistrationService registrationService;
 
     @PostMapping
-    public ResponseEntity<?> registerCourse(
+    public ResponseEntity<RegistrationResponse> registerCourse(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String username,
-            @RequestBody RegistrationRequest request) {
-        if (username == null || username.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("message", "Chưa xác thực người dùng!"));
-        }
-
-        try {
-            RegistrationResponse response = registrationService.registerCourse(username, request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
+            @RequestHeader(value = "X-User-Role", required = false) String role,
+            @Valid @RequestBody RegistrationRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(registrationService.registerCourse(authenticatedStudentId(userId, role), authenticatedUsername(username), request));
     }
 
-    @GetMapping("/my-courses")
-    public ResponseEntity<?> getMyRegistrations(@RequestHeader(value = "X-User-Name", required = false) String username) {
-        if (username == null || username.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("message", "Chưa xác thực người dùng!"));
-        }
-
-        List<RegistrationResponse> list = registrationService.getMyRegistrations(username);
-        return ResponseEntity.ok(list);
+    @GetMapping("/my")
+    public ResponseEntity<List<RegistrationResponse>> getMyRegistrations(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role) {
+        return ResponseEntity.ok(registrationService.getMyRegistrations(authenticatedStudentId(userId, role)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelRegistration(
-            @RequestHeader(value = "X-User-Name", required = false) String username,
+    public ResponseEntity<Void> cancelRegistration(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role,
             @PathVariable Long id) {
-        if (username == null || username.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("message", "Chưa xác thực người dùng!"));
-        }
+        registrationService.cancelRegistration(authenticatedStudentId(userId, role), id);
+        return ResponseEntity.noContent().build();
+    }
 
-        try {
-            registrationService.cancelRegistration(username, id);
-            return ResponseEntity.ok(Map.of("message", "Hủy đăng ký môn học thành công!"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    private Long authenticatedStudentId(String headerValue, String role) {
+        if (!"STUDENT".equals(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Chỉ sinh viên mới được thao tác đăng ký học phần.");
         }
+        try {
+            return Long.valueOf(headerValue);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Chưa xác thực người dùng!");
+        }
+    }
+
+    private String authenticatedUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Chưa xác thực người dùng!");
+        }
+        return username;
     }
 }

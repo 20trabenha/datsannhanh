@@ -9,7 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
-    List<Registration> findByUsername(String username);
-    boolean existsByUsernameAndCourseIdAndStatus(String username, Long courseId, String status);
-    Optional<Registration> findByIdAndUsername(Long id, String username);
+    List<Registration> findByStudentIdAndTrangThaiOrderByNgayDangKyDesc(Long studentId, String trangThai);
+    boolean existsByStudentIdAndCourseIdAndTrangThai(Long studentId, Long courseId, String trangThai);
+    Optional<Registration> findByStudentIdAndCourseId(Long studentId, Long courseId);
+    Optional<Registration> findByIdAndStudentIdAndTrangThai(Long id, Long studentId, String trangThai);
 }

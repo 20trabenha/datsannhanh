@@ -7,7 +7,7 @@ export default function Navbar() {
   return <nav style={{ display: 'flex', gap: 16, padding: 12, borderBottom: '1px solid #ddd', alignItems: 'center' }}>
     <Link to="/courses">Danh sach mon hoc</Link>
     {user?.role === 'ADMIN' && <Link to="/admin/courses">Quan tri mon hoc</Link>}
-    {user?.role === 'STUDENT' && <Link to="/register-course">Dang ky hoc phan</Link>}
+    {user?.role === 'STUDENT' && <><Link to="/register-course">Dang ky hoc phan</Link><Link to="/my-registrations">Mon hoc da dang ky</Link></>}
     <div style={{ marginLeft: 'auto' }}>
       {isAuthenticated ? <><span style={{ marginRight: 12 }}>Xin chao, {user?.username} ({user?.role})</span><button onClick={() => { logout(); navigate('/login'); }}>Dang xuat</button></> : <Link to="/login">Dang nhap</Link>}
     </div>

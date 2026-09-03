@@ -21,11 +21,18 @@ public class GatewayRoleAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String username = request.getHeader("X-User-Name");
         String role = request.getHeader("X-User-Role");
+        String userId = request.getHeader("X-User-Id");
 
         if (username != null && role != null && !role.isBlank()
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             var authority = new SimpleGrantedAuthority("ROLE_" + role);
-            var authentication = new UsernamePasswordAuthenticationToken(username, null, List.of(authority));
+            Long credentials = null;
+            try {
+                if (userId != null) credentials = Long.valueOf(userId);
+            } catch (NumberFormatException ignored) {
+                // Requests without a valid gateway user id are not authenticated.
+            }
+            var authentication = new UsernamePasswordAuthenticationToken(username, credentials, List.of(authority));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);

@@ -4,6 +4,7 @@
 }
 
 export interface LoginResponse {
+  userId: number;
   token: string;
   username: string;
   role: 'ADMIN' | 'STUDENT';

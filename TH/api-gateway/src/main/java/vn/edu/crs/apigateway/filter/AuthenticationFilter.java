@@ -49,6 +49,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 Claims claims = jwtUtil.getAllClaimsFromToken(token);
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
+                Number userId = claims.get("userId", Number.class);
+                if (username == null || role == null || role.isBlank() || userId == null) {
+                    return this.onError(exchange, "Token is missing required identity information", HttpStatus.UNAUTHORIZED);
+                }
 
                 // Never forward identity headers supplied by the browser.  Downstream
                 // services must receive only the identity derived from this verified JWT.
@@ -56,8 +60,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                         .headers(headers -> {
                             headers.remove("X-User-Name");
                             headers.remove("X-User-Role");
+                            headers.remove("X-User-Id");
                             headers.set("X-User-Name", username);
-                            headers.set("X-User-Role", role != null ? role : "");
+                            headers.set("X-User-Role", role);
+                            headers.set("X-User-Id", String.valueOf(userId.longValue()));
                         })
                         .build();
 

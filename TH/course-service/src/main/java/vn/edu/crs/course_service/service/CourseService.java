@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.crs.course_service.dto.CourseDTO;
 import vn.edu.crs.course_service.entity.Course;
 import vn.edu.crs.course_service.repository.CourseRepository;
@@ -87,29 +88,26 @@ public class CourseService {
 
     // --- Bổ sung 2 hàm xử lý giữ chỗ / nhả chỗ môn học ---
 
+    @Transactional
     public CourseDTO reserveSeat(Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy môn học với ID: " + id));
-
-        if (course.getSoChoConLai() <= 0) {
+        if (!courseRepository.existsById(id)) {
+            throw new NoSuchElementException("Không tìm thấy môn học với ID: " + id);
+        }
+        if (courseRepository.reserveSeatIfAvailable(id) == 0) {
             throw new IllegalStateException("Môn học đã hết chỗ trống!");
         }
-
-        course.setSoChoConLai(course.getSoChoConLai() - 1);
-        Course saved = courseRepository.save(course);
-        return mapToDTO(saved);
+        return mapToDTO(courseRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy môn học với ID: " + id)));
     }
 
+    @Transactional
     public CourseDTO releaseSeat(Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy môn học với ID: " + id));
-
-        if (course.getSoChoConLai() < course.getSoChoToiDa()) {
-            course.setSoChoConLai(course.getSoChoConLai() + 1);
+        if (!courseRepository.existsById(id)) {
+            throw new NoSuchElementException("Không tìm thấy môn học với ID: " + id);
         }
-
-        Course saved = courseRepository.save(course);
-        return mapToDTO(saved);
+        courseRepository.releaseSeatIfPossible(id);
+        return mapToDTO(courseRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy môn học với ID: " + id)));
     }
 
     private CourseDTO mapToDTO(Course course) {

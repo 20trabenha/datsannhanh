@@ -15,7 +15,7 @@ public class CourseClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${course-service.base-url}")
+    @Value("${services.course-service.base-url}")
     private String courseServiceBaseUrl;
 
     public void reserveSeat(Long courseId) {

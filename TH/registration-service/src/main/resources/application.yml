@@ -16,10 +16,7 @@ spring:
 
 services:
   course-service:
-    url: http://localhost:8082/api/courses
-
-course-service:
-  base-url: http://localhost:8082/api/courses
+    base-url: http://localhost:8082
 
 # THÊM ĐOẠN NÀY VÀO:
 jwt:

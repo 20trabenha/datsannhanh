@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 public class RegistrationResponse {
     private Long id;
-    private String username;
+    private Long studentId;
     private Long courseId;
-    private LocalDateTime registrationTime;
-    private String status;
+    private LocalDateTime ngayDangKy;
+    private String trangThai;
 }

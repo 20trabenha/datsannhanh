@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { LoginResponse } from '../types/auth';
 
-type AuthUser = { username: string; role: 'ADMIN' | 'STUDENT' };
+type AuthUser = { id: number; username: string; role: 'ADMIN' | 'STUDENT' };
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
@@ -20,8 +20,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token || !savedUser) return null;
     try {
       const parsed = JSON.parse(savedUser) as Partial<AuthUser>;
-      if (typeof parsed.username !== 'string' || (parsed.role !== 'ADMIN' && parsed.role !== 'STUDENT')) throw new Error('Invalid saved user');
-      return { username: parsed.username, role: parsed.role };
+      if (!Number.isInteger(parsed.id) || (parsed.id as number) < 1 || typeof parsed.username !== 'string' || (parsed.role !== 'ADMIN' && parsed.role !== 'STUDENT')) throw new Error('Invalid saved user');
+      return { id: parsed.id as number, username: parsed.username, role: parsed.role };
     } catch {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (data: LoginResponse) => {
-    const authUser: AuthUser = { username: data.username, role: data.role };
+    const authUser: AuthUser = { id: data.userId, username: data.username, role: data.role };
     localStorage.setItem(TOKEN_KEY, data.token);
     localStorage.setItem(USER_KEY, JSON.stringify(authUser));
     setUser(authUser);

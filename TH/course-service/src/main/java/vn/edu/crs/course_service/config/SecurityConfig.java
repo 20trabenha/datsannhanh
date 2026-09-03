@@ -71,6 +71,9 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/courses/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/courses/**").hasRole("ADMIN")
 
+                        // Registration service calls these local-only endpoints to reserve/release a seat.
+                        .requestMatchers("/internal/courses/**").permitAll()
+
                         // H2 Console
                         .requestMatchers("/h2-console/**").permitAll()
 
