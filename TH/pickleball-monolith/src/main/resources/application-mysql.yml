@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: ${PICKLEBALL_DB_URL:jdbc:mysql://localhost:3306/pickleball_db?createDatabaseIfNotExist=true}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${PICKLEBALL_DB_USER:root}
+    password: ${PICKLEBALL_DB_PASSWORD:}
